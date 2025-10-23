@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebStack.cc - 设计师网址导航</title>
+    <link rel="shortcut icon" href="./public/assets/images/favicon.png">
+    <link rel="stylesheet" href="./public/assets/css/fonts/linecons/css/linecons.css">
+    <link rel="stylesheet" href="./public/assets/css/fonts/fontawesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="./public/assets/css/bootstrap.css">
+    <link rel="stylesheet" href="./public/assets/css/xenon-core.css">
+    <link rel="stylesheet" href="./public/assets/css/xenon-components.css">
+    <link rel="stylesheet" href="./public/assets/css/xenon-skins.css">
+    <link rel="stylesheet" href="./public/assets/css/nav.css">
+    <script src="./public/assets/js/jquery-1.11.1.min.js"></script>
+</head>
+
+<body class="page-body">
+    <!-- skin-white -->
+    <div class="page-container">
+        <div class="sidebar-menu toggle-others fixed">
+            <div class="sidebar-menu-inner">
+                <header class="logo-env">
+                    <!-- logo -->
+                    <div class="logo">
+                        <a href="index.html" class="logo-expanded">
+                            <img src="./public/assets/images/logo@2x.png" width="100%" alt="" />
+                        </a>
+                        <a href="index.html" class="logo-collapsed">
+                            <img src="./public/assets/images/logo-collapsed@2x.png" width="40" alt="" />
+                        </a>
+                    </div>
+                    <div class="mobile-menu-toggle visible-xs">
+                        <a href="#" data-toggle="user-info-menu">
+                            <i class="linecons-cog"></i>
+                        </a>
+                        <a href="#" data-toggle="mobile-menu">
+                            <i class="fa-bars"></i>
+                        </a>
+                    </div>
+                </header>
+                <ul id="main-menu" class="main-menu">
+
+                </ul>
+            </div>
+        </div>
+        <div id="content-container" class="main-content">
+            <nav class="navbar user-info-navbar" role="navigation">
+                <ul class="user-info-menu left-links list-inline list-unstyled">
+                    <li class="hidden-sm hidden-xs">
+                        <a href="#" data-toggle="sidebar">
+                            <i class="fa-bars"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // 通用的 GET 请求，指定数据类型为 json
+            $.get("menu.json", function (data) {
+                console.log("获取到的菜单数据：", data);
+
+                // 假设页面中有一个ul容器（例如class为menu-list），用于存放这些li
+                var menuContainer = document.querySelector('#main-menu'); // 请确保页面中有对应的容器
+
+                // 遍历菜单数据
+                data.forEach(function (item) {
+                    // 创建li元素
+                    var li = document.createElement("li");
+
+                    // 创建a元素并设置属性
+                    var a = document.createElement("a");
+                    a.href = "#" + item.title; // 链接地址使用title作为锚点
+                    a.className = "smooth"; // 添加类名
+
+                    // 创建i元素（图标）
+                    var icon = document.createElement("i");
+                    icon.className = item.icon; // 使用json中的icon值作为类名
+
+                    // 创建span元素（标题）
+                    var span = document.createElement("span");
+                    span.className = "title";
+                    span.textContent = item.title; // 填充标题文本
+
+                    // 组装元素结构
+                    a.appendChild(icon);
+                    a.appendChild(span);
+                    li.appendChild(a);
+
+                    // 添加到容器中
+                    menuContainer.appendChild(li);
+                });
+            }, "json")
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("请求失败：", errorThrown);
+                });
+
+            $.get("data.json", function (categories) {
+                console.log("获取到的分类数据：", categories);
+
+                // 假设页面中有一个容器（如<div id="content-container"></div>）用于存放所有内容
+                var container = $("#content-container");
+
+                // 遍历每个分类（如"常用推荐"）
+                categories.forEach(function (category) {
+                    // 1. 创建分类标题区域
+                    var titleSection = $('<h4 class="text-gray"></h4>');
+                    var icon = $('<i style="margin-right: 7px;"></i>')
+                        .addClass(category.icon) // 添加图标类（如linecons-star）
+                        .attr("id", category.title); // 设置id为分类标题
+                    titleSection.append(icon).append(category.title);
+
+                    // 2. 处理分类下的项目，按每行4个（col-sm-3）分组
+                    var items = category.data;
+                    var rowContainer = $('<div></div>'); // 用于临时存放行
+                    var currentRow; // 当前行
+
+                    items.forEach(function (item, index) {
+                        // 每4个项目创建一个新行（index % 4 === 0时）
+                        if (index % 4 === 0) {
+                            currentRow = $('<div class="row"></div>');
+                            rowContainer.append(currentRow);
+                        }
+
+                        // 3. 创建单个项目的col-sm-3结构
+                        var col = $('<div class="col-sm-3"></div>');
+
+                        // 4. 创建项目卡片（xe-widget）
+                        var widget = $('<div class="xe-widget xe-conversations box2 label-info"></div>')
+                            .attr("onclick", `window.open('${item.url}', '_blank')`) // 点击打开链接
+                            .attr("data-toggle", "tooltip")
+                            .attr("data-placement", "bottom")
+                            .attr("title", item.url); //  tooltip显示链接
+
+                        // 5. 创建卡片内部结构
+                        var commentEntry = $('<div class="xe-comment-entry"></div>');
+
+                        // 头像区域
+                        var userImg = $('<a class="xe-user-img"></a>');
+                        var img = $('<img class="lozad img-circle" width="40">')
+                            .attr("data-src", item.img); // 图片路径
+                        userImg.append(img);
+
+                        // 内容区域
+                        var comment = $('<div class="xe-comment"></div>');
+                        var userName = $('<a href="#" class="xe-user-name overflowClip_1"></a>')
+                            .append($('<strong></strong>').text(item.title)); // 项目标题
+                        var desc = $('<p class="overflowClip_2"></p>').text(item.overflowClip); // 描述
+                        comment.append(userName).append(desc);
+
+                        // 组装卡片
+                        commentEntry.append(userImg).append(comment);
+                        widget.append(commentEntry);
+                        col.append(widget);
+
+                        // 添加到当前行
+                        currentRow.append(col);
+                    });
+
+                    // 6. 将当前分类的所有内容添加到页面容器
+                    container
+                        .append(titleSection) // 添加分类标题
+                        .append(rowContainer) // 添加项目行
+                        .append('<br />'); // 分类间的分隔
+                });
+                const observer = lozad();
+                observer.observe();
+            }, "json")
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("加载数据失败：", errorThrown);
+                });
+
+            //img lazy loaded
+
+
+            $(document).on('click', '.has-sub', function () {
+                var _this = $(this)
+                if (!$(this).hasClass('expanded')) {
+                    setTimeout(function () {
+                        _this.find('ul').attr("style", "")
+                    }, 300);
+
+                } else {
+                    $('.has-sub ul').each(function (id, ele) {
+                        var _that = $(this)
+                        if (_this.find('ul')[0] != ele) {
+                            setTimeout(function () {
+                                _that.attr("style", "")
+                            }, 300);
+                        }
+                    })
+                }
+            })
+            $('.user-info-menu .hidden-sm').click(function () {
+                if ($('.sidebar-menu').hasClass('collapsed')) {
+                    $('.has-sub.expanded > ul').attr("style", "")
+                } else {
+                    $('.has-sub.expanded > ul').show()
+                }
+            })
+            $("#main-menu li ul li").click(function () {
+                $(this).siblings('li').removeClass('active'); // 删除其他兄弟元素的样式
+                $(this).addClass('active'); // 添加当前元素的样式
+            });
+            $("a.smooth").click(function (ev) {
+                ev.preventDefault();
+
+                public_vars.$mainMenu.add(public_vars.$sidebarProfile).toggleClass('mobile-is-visible');
+                ps_destroy();
+                $("html, body").animate({
+                    scrollTop: $($(this).attr("href")).offset().top - 30
+                }, {
+                    duration: 500,
+                    easing: "swing"
+                });
+            });
+            return false;
+        });
+
+        var href = "";
+        var pos = 0;
+        $("a.smooth").click(function (e) {
+            $("#main-menu li").each(function () {
+                $(this).removeClass("active");
+            });
+            $(this).parent("li").addClass("active");
+            e.preventDefault();
+            href = $(this).attr("href");
+            pos = $(href).position().top - 30;
+        });
+    </script>
+    <!-- Bottom Scripts -->
+    <script src="./public/assets/js/bootstrap.min.js"></script>
+    <script src="./public/assets/js/TweenMax.min.js"></script>
+    <script src="./public/assets/js/resizeable.js"></script>
+    <script src="./public/assets/js/joinable.js"></script>
+    <script src="./public/assets/js/xenon-api.js"></script>
+    <script src="./public/assets/js/xenon-toggles.js"></script>
+    <!-- JavaScripts initializations and stuff -->
+    <script src="./public/assets/js/xenon-custom.js"></script>
+    <script src="./public/assets/js/lozad.js"></script>
+</body>
+
+</html>
