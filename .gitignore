@@ -7,7 +7,7 @@
 .idea/workspace.xml
 .idea/usage.statistics.xml
 .idea/shelf
-public/assets/images/
+public/assets/images/logos/*
 
 # deps
 node_modules/
